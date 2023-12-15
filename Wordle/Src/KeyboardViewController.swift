@@ -12,13 +12,16 @@ protocol KeyboardViewControllerDelegate: AnyObject {
         _ vc: KeyboardViewController,
         didTapKey letter: Character
     )
+    func keyboardViewControllerDidTapBackspace(
+        _ vc: KeyboardViewController
+    )
 }
 
 class KeyboardViewController: UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UICollectionViewDataSource {
 
     weak var delegate: KeyboardViewControllerDelegate?
 
-    let letters = ["qwertyuiop", "asdfghjkl", "zxcvbnm"]
+    let letters = ["qwertyuiop", "asdfghjkl", "zxcvbnm\u{232b}"]
     private var keys: [[Character]] = []
 
     let collectionView: UICollectionView = {
@@ -46,6 +49,17 @@ class KeyboardViewController: UIViewController, UICollectionViewDelegateFlowLayo
         for row in letters {
             let chars = Array(row)
             keys.append(chars)
+        }
+    }
+    
+    func handleKeyTap(at indexPath: IndexPath) {
+        let letter = keys[indexPath.section][indexPath.row]
+
+        // Check if the tapped key is the backspace key
+        if letter == "\u{232b}" {
+            delegate?.keyboardViewControllerDidTapBackspace(self)
+        } else {
+            delegate?.keyboardViewController(self, didTapKey: letter)
         }
     }
 }
@@ -101,8 +115,9 @@ extension KeyboardViewController {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         //
         collectionView.deselectItem(at: indexPath, animated: true)
-        let letter = keys[indexPath.section][indexPath.row]
-        delegate?.keyboardViewController(self,
-                                         didTapKey: letter)
+        handleKeyTap(at: indexPath)
+//        let letter = keys[indexPath.section][indexPath.row]
+//        delegate?.keyboardViewController(self,
+//                                         didTapKey: letter)
     }
 }
